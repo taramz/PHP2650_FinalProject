@@ -1,0 +1,47 @@
+---
+title: "PHP 2650 Final Project"
+author: "Tara Amruthur"
+date: "2023-05-02"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Reinforcement Learning
+
+by Hannah & Tara
+
+\
+Consider the following scenario: a mother is trying to encourage her child to do the dishes at the end of every day. No matter how many times she expresses this to her child, they do not do the dishes. In this case, she wants to reinforce a particular behavior (washing the dishes). A great way to do this is to offer some sort of reward, like an allowance. If she were to give her child an allowance upon the successful washing of the dishes, she would find that this encourages her child to do their chores. This is an example prominent in psychology called positive reinforcement. In essence, positive reinforcement refers to the addition of something (in this example, an allowance) to reinforce a behavior (doing chores). This psychological phenomena is the logic that underpins reinforcement learning.
+
+#### What is Reinforcement Learning?
+
+Reinforcement learning is a machine learning method that sits outside both supervised learning (which learns from a training set of labeled examples) and unsupervised learning (which identifies hidden structures from unlabeled data). Instead, reinforcement learning involves training an agent to learn how to make decisions to get the desired result through trial-and-error. The agent interacts with the environment, receives feedback in the form of rewards or penalties, and adjusts its actions to maximize the total reward over time.
+
+![Types of Machine Learning](machine_learning.png)
+
+#### Reinforcement Learning: The Main Elements
+
+There are *four* main elements in reinforcement learning:
+
+1.  Policy: an agent's way of behaving at any given time
+
+2.  Reward Signal: immediate reward following an action
+
+3.  Value Function: the total amount of reward an agent can expect to accumulate in the future, starting from the current state
+
+4.  Model of Environment: allows for inferences of how the environment will behave, used for planning
+
+![Reinforcement Learning](reinforcement_learning.png)
+
+#### Exploitation vs. Exploration
+
+Reinforcement models need to balance exploitation (using actions that it already knows will result in a reward) and exploration (trying new actions that could potentially result in a reward). A model with maximized exploitation will quickly find a solution, but will likely be suboptimal since it continues with the first actions that resulted in a reward. On the other hand, a model with maximized exploration will continuously discover new possible actions but never find a solution since it discounts which actions produce the reward. We aim to investigate this trade-off further and determine the best ways to set these parameters, using the example of Tic-Tac-Toe.
+
+#### Benefits & Limitations
+
+#### Resources

@@ -62,13 +62,7 @@ The problem above illustrates one of the most fundamental trade-offs in reinforc
 
 One way to add exploration is by using the $\epsilon$-greedy algorithm. Agents developed using this algorithm will behave greedily with probability $1-\epsilon$, but will sample from all actions randomly with probability $\epsilon$. In other words, it will usually *exploit* its current knowledge, but will *explore* other actions every once in a while.
 
-Randomized policies, on the other hand, are the exact opposite of a greedy policy. These policies select an action at random, with probability $p$. As such, they always choose to explore the environment, rather than exploiting what they know to be the optimal action. There are some tweaks that can be made to these randomized policies to make them perform better.
-
-One example is to start off with a large value of $p$ to encourage initial exploration and slowly decrease the value over time. Another example is to perform as a purely exploratory algorithm for a certain number of iterations, before switching to a purely greedy algorithm. This strategy is known as the $\epsilon$-first policy.
-
-This policy takes in two parameters: $\epsilon$ and $N$. For the first $\epsilon \times N$ iterations, it will follow a purely random policy before switching to a purely greedy policy. In order to determine how different values of $\epsilon$ affect the performance, I have applied four different policies to the same bandit, each with the different values of $\epsilon$ explored above.
-
-To compare the performance of the greedy, $\epsilon$-greedy algorithms, and $\epsilon$-first, we performed simulations of several 10-armed bandit problems.
+To compare the performance of the greedy and $\epsilon$-greedy algorithms, we performed simulations of several 10-armed bandit problems.
 
 **Simulation 1: Reward Variance 1**
 
@@ -77,8 +71,6 @@ Our first simulation used the following parameters to set the reward distributio
 $R_t \sim N(\mu_a, 1)$ where $\mu_a \sim N(0, 1)$.
 
 We ran 2,000 simulations over 1,000 time steps, comparing four $\epsilon$ values: 0, 0.01, 0.1, and 0.5. At time step 1,000, over the 2,000 simulations, the greedy algorithm ($\epsilon = 0$) only picked the optimal action 38% of the time. This makes sense, as this agent was not able to explore actions beyond what it had estimated as the best. The agent with $\epsilon = 0.01$ gradually increased the rate at which it chose the optimal action, outperforming the greedy agent. The agent with $\epsilon = 0.1$ performed even better, choosing the optimal action more often and accruing a high reward over time. However, the agent with $\epsilon = 0.5$ produced the lowest average rewards. This agent only chose the action with the highest estimated reward 50% of the time and chose randomly otherwise. This led it to not be able to "learn" as well as the other agents.
-
-For the $\epsilon$-first algorithm, we notice the opposite. Unsurprisingly, the agent that performs best has $\epsilon = 0.5$. As this agent spends 50% of the time exploring the environment prior to exploiting it, it is expected that it would outperform the other agents, which spend significantly less time exploring the environment. Though the agent with $\epsilon = 0.01$ spends more time exploiting the environment, it is not able to accrue a higher reward, since it hasn't spent enough time exploring the environment to determine which action results in the highest reward.
 
 ```{r, include = FALSE}
 set.seed(2)
@@ -95,28 +87,7 @@ agents1 <- list(Agent$new(EpsilonGreedyPolicy$new(0),    bandit1, "e = 0, greedy
 
 simulator1 <- Simulator$new(agents = agents1, horizon = 1000, simulations = 2000)
 history1 <- simulator1$run()
-```
 
-```{r, echo = FALSE, fig.show="hold", out.width="50%"}
-plot(history1, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
-plot(history1, type = "optimal", lwd = 1, legend_position = "bottomright")
-```
-
-```{r, include = FALSE}
-set.seed(2)
-mus1            <- rnorm(10, 0, 1) # true expected reward per arm 
-sigmas1         <- rep(1, 10) 
-
-# actual rewards selected according to normal dist
-bandit1          <- BasicGaussianBandit$new(mu_per_arm = mus1, sigma_per_arm = sigmas1)
-
-agents1          <- list(Agent$new(EpsilonFirstPolicy$new(0, 1000),    bandit1, "e = 0"), # Pure exploration
-                         Agent$new(EpsilonFirstPolicy$new(0.01, 1000),  bandit1, "e = 0.01"),
-                         Agent$new(EpsilonFirstPolicy$new(0.1, 1000), bandit1, "e = 0.1"),
-                         Agent$new(EpsilonFirstPolicy$new(0.5, 1000), bandit1, "e = 0.5"))
-
-simulator1       <- Simulator$new(agents = agents1, horizon = 1000, simulations = 2000)
-history1         <- simulator1$run()
 ```
 
 ```{r, echo = FALSE, fig.show="hold", out.width="50%"}
@@ -131,8 +102,6 @@ Our next simulation increased the variance of possible rewards:
 $R_t \sim N(\mu_a, 1)$ where $\mu_a \sim N(0, 10)$.
 
 We expected that noisier rewards would require more exploration to figure out the optimal action and thus higher $\epsilon$ values would be better. Although the $\epsilon = 0.1$ still had the best performance, higher reward variance caused the $\epsilon = 0.5$ agent to perform better than the $\epsilon = 0.01$ agent, showing that sufficient exploration is important in this situation.
-
-Similar to the $\epsilon$-greedy algorithm, the agent with $\epsilon = 0.5$ performed better. This isn't a change from the previous simulation with a lower reward variance.
 
 ```{r, include = FALSE}
 mus2            <- rnorm(10, 0, 1) # true expected reward per arm 
@@ -155,28 +124,6 @@ plot(history2, type = "average", regret = FALSE, lwd = 1, legend_position = "bot
 plot(history2, type = "optimal", lwd = 1, legend_position = "bottomright")
 ```
 
-```{r, include = FALSE}
-set.seed(2)
-mus2            <- rnorm(10, 0, 1) # true expected reward per arm 
-sigmas2         <- rep(10, 10) 
-
-# actual rewards selected according to normal dist
-bandit2         <- BasicGaussianBandit$new(mu_per_arm = mus2, sigma_per_arm = sigmas2)
-
-agents2          <- list(Agent$new(EpsilonFirstPolicy$new(0, 1000),    bandit2, "e = 0"), # Pure exploration
-                         Agent$new(EpsilonFirstPolicy$new(0.01, 1000),  bandit2, "e = 0.01"),
-                         Agent$new(EpsilonFirstPolicy$new(0.1, 1000), bandit2, "e = 0.1"),
-                         Agent$new(EpsilonFirstPolicy$new(0.5, 1000), bandit2, "e = 0.5"))
-
-simulator2       <- Simulator$new(agents = agents2, horizon = 1000, simulations = 2000)
-history2         <- simulator2$run()
-```
-
-```{r, echo = FALSE, fig.show="hold", out.width="50%"}
-plot(history2, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
-plot(history2, type = "optimal", lwd = 1, legend_position = "bottomright")
-```
-
 **Simulation 3: Reward Variance 0**
 
 Our next simulation decreased the variance of possible rewards to zero:
@@ -184,8 +131,6 @@ Our next simulation decreased the variance of possible rewards to zero:
 $R_t \sim N(\mu_a, 1)$ where $\mu_a \sim N(0, 0)$.
 
 In this case, the true value of an action ($\mu_a$) is known by the agent after trying it just once. Exploration isn't needed once each action has been tried, so we expect the greedier algorithms to perform better. However, our results do not show this: the greedy algorithm still performed worst and the $\epsilon = 0.01$ algorithm did not do much better than in our first simulation. Again, we find that $\epsilon = 0.01$ appears to be a good balance between exploitation and exploration.
-
-Though in our previous simulations the agent with $\epsilon = 0.5$ performs best when the $\epsilon$-first policy is implemented, here we see that the agent with $\epsilon = 0.1$ performs just as well. Since the true value is known after trying an action once, we don't need as much exploration as the agent with $\epsilon = 0.5$ performs. For this policy, the agent with the best balance between exploration and exploitation is $\epsilon = 0.1$.
 
 ```{r, include = FALSE}
 mus3            <- rnorm(10, 0, 1) # true expected reward per arm 
@@ -208,27 +153,7 @@ plot(history3, type = "average", regret = FALSE, lwd = 1, legend_position = "bot
 plot(history3, type = "optimal", lwd = 1, legend_position = "bottomright")
 ```
 
-```{r, include = FALSE}
-set.seed(2)
-mus3         <- rnorm(10, 0, 1) # true expected reward per arm 
-sigmas3         <- rep(0, 10) 
-
-# actual rewards selected according to normal dist
-bandit3          <- BasicGaussianBandit$new(mu_per_arm = mus3, sigma_per_arm = sigmas3)
-
-agents3          <- list(Agent$new(EpsilonFirstPolicy$new(0, 1000),    bandit3, "e = 0"), # Pure exploration
-                         Agent$new(EpsilonFirstPolicy$new(0.01, 1000),  bandit3, "e = 0.01"),
-                         Agent$new(EpsilonFirstPolicy$new(0.1, 1000), bandit3, "e = 0.1"),
-                         Agent$new(EpsilonFirstPolicy$new(0.5, 1000), bandit3, "e = 0.5"))
-
-simulator3       <- Simulator$new(agents = agents3, horizon = 1000, simulations = 2000)
-history3         <- simulator3$run()
-```
-
-```{r, echo = FALSE, fig.show="hold", out.width="50%"}
-plot(history3, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
-plot(history3, type = "optimal", lwd = 1, legend_position = "bottomright")
-```
+#### 
 
 #### Model Evaluation
 

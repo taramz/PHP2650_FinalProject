@@ -18,7 +18,10 @@ Consider the following scenario: a mother is trying to encourage her child to do
 
 Reinforcement learning is a machine learning method that sits outside both supervised learning (which learns from a training set of labeled examples) and unsupervised learning (which identifies hidden structures from unlabeled data). Instead, reinforcement learning involves training an agent to learn how to make decisions to get the desired result through trial-and-error. The agent interacts with the environment, receives feedback in the form of rewards or penalties, and adjusts its actions to maximize the total reward over time.
 
+<center>
 ![](machine_learning.png){width="527"}
+</center>
+
 
 #### Reinforcement Learning: The Main Elements
 
@@ -32,13 +35,17 @@ There are **four** main elements in reinforcement learning:
 
 4.  Model of Environment: allows for inferences of how the environment will behave, used for planning
 
+<center>
 ![](reinforcement_learning.png){width="527"}
+</center>
 
 #### Applications of Reinforcement Learning
 
 #### K-Armed Bandits
 
+<center>
 ![](k_armed_bandits.png)
+</center>
 
 A common reinforcement learning problem that has been studied for decades is the k-armed bandit problem. In this problem, our agent is in the room with $k$ gambling machines (denoted as "one-armed bandits"). The agent is allowed a fixed number of pulls, $n$. During each pull, any arm may be pulled. There is no cost to use these bandits; the only negative reward associated with a pull is wasting that turn. When arm $i$ is pulled, it returns a reward determined by an underlying distribution. These payoffs are independent and the parameters of each arm's distribution are unknown. The agent's goal is to maximize the rewards by concentrating on pulling the best arms.
 

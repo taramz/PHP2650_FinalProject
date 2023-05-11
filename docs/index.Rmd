@@ -9,6 +9,7 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(contextual)
 ```
 
 Consider the following scenario: a mother is trying to encourage her child to do the dishes at the end of every day. No matter how many times she expresses this to her child, they do not do the dishes. In this case, she wants to reinforce a particular behavior (washing the dishes). A great way to do this is to offer some sort of reward, like an allowance. If she were to give her child an allowance upon the successful washing of the dishes, she would find that this encourages her child to do their chores. This is an example prominent in psychology called positive reinforcement. In essence, positive reinforcement refers to the addition of something (in this example, an allowance) to reinforce a behavior (doing chores). This psychological phenomena is the logic that underpins reinforcement learning.
@@ -39,11 +40,134 @@ There are **four** main elements in reinforcement learning:
 
 ![](k_armed_bandits.png)
 
-A common reinforcement learning problem that has been studied for decades is the k-armed bandit problem. In this problem, our agent is in the room with k gambling machines (denoted as \"one-armed bandits\"). The agent is allowed a fixed number of pulls, n. During each pull, an arm may be pulled. There is no cost to use these bandits; the only negative reward associated with a pull is wasting that turn. When arm i is pulled, it pays off either 0 or 1, determined by an underlying probability parameter pi. These payoffs are independent and the pis are unknown. What is the best strategy for the agent?
+A common reinforcement learning problem that has been studied for decades is the k-armed bandit problem. In this problem, our agent is in the room with $k$ gambling machines (denoted as "one-armed bandits"). The agent is allowed a fixed number of pulls, $n$. During each pull, any arm may be pulled. There is no cost to use these bandits; the only negative reward associated with a pull is wasting that turn. When arm $i$ is pulled, it returns a reward determined by an underlying distribution. These payoffs are independent and the parameters of each arm's distribution are unknown. The agent's goal is to maximize the rewards by concentrating on pulling the best arms.
+
+In our example, each arm's expected reward will be determined by a Gaussian distribution. The expected reward is referred to as the *value* of the action $a$ and i denoted $q_*(a)$. The action selected on time step $t$ is denoted as $A_t$ and the corresponding reward as $R_t$:
+
+$$
+q_*(a) = E[R_t|A_t = a]
+$$
+
+In the Gaussian example, $R_t \sim N(\mu, \sigma)$ so $q_*(a) = \mu$.
+
+Since the agent does not know the true parameters underlying the reward distribution, it needs to update its guesses as it tries various actions. The estimated value of action *a* at time step *t* is denoted as $Q_t(a)$. One way to update these estimates is by averaging over the rewards already received for a given action *a*:
+
+$$Q_t(a) = \frac{\text{sum of rewards when } a \text{ taken prior to } t}{\text{number of times } a \text{ taken prior to } t} = \frac{\sum_{i=1}^{t-1}R_i \cdot \textbf{1}_{A_i=a}}{\sum_{i=1}^{t-1}\textbf{1}_{A_i=a}}$$
 
 #### Exploitation vs. Exploration
 
-#### Regret
+At time step *t*, the agent has estimated values $Q_{t-1}(a)$ for each possible action *a*. How does it decide which action to take next? The most obvious decision may be to select the action with the highest estimated value. This strategy is referred to as *greedy* action selection, which *exploits* the knowledge that the agent already has. But what if the agent estimates a high value for a suboptimal action early on? The agent will just keep selecting this action again and again, without ever *exploring* the other, more optimal actions.
+
+The problem above illustrates one of the most fundamental trade-offs in reinforcement learning. Reinforcement models need to balance exploitation (using actions that it already knows will result in a reward) and exploration (trying new actions that could potentially result in a reward). A model with maximized exploitation will quickly find a solution, but will likely be suboptimal since it continues with the first actions that resulted in a reward. On the other hand, a model with maximized exploration will continuously discover new possible actions but never find a solution since it discounts which actions produce the reward.
+
+One way to add exploration is by using the $\epsilon$-greedy algorithm. Agents developed using this algorithm will behave greedily with probability $1-\epsilon$, but will sample from all actions randomly with probability $\epsilon$. In other words, it will usually *exploit* its current knowledge, but will *explore* other actions every once in a while.
+
+To compare the performance of the greedy and $\epsilon$-greedy algorithms, we performed simulations of several 10-armed bandit problems.
+
+**Simulation 1: Reward Variance 1**
+
+Our first simulation used the following parameters to set the reward distributions:
+
+$R_t \sim N(\mu_a, 1)$ where $\mu_a \sim N(0, 1)$.
+
+We ran 2,000 simulations over 1,000 time steps, comparing four $\epsilon$ values: 0, 0.01, 0.1, and 0.5. At time step 1,000, over the 2,000 simulations, the greedy algorithm ($\epsilon = 0$) only picked the optimal action 38% of the time. This makes sense, as this agent was not able to explore actions beyond what it had estimated as the best. The agent with $\epsilon = 0.01$ gradually increased the rate at which it chose the optimal action, outperforming the greedy agent. The agent with $\epsilon = 0.1$ performed even better, choosing the optimal action more often and accruing a high reward over time. However, the agent with $\epsilon = 0.5$ produced the lowest average rewards. This agent only chose the action with the highest estimated reward 50% of the time and chose randomly otherwise. This led it to not be able to "learn" as well as the other agents.
+
+```{r, include = FALSE}
+set.seed(2)
+mus1 <- rnorm(10, 0, 1) # true expected reward per arm 
+sigmas1 <- rep(1, 10) 
+
+# actual rewards selected according to normal dist
+bandit1 <- BasicGaussianBandit$new(mu_per_arm = mus1, sigma_per_arm = sigmas1)
+
+agents1 <- list(Agent$new(EpsilonGreedyPolicy$new(0),    bandit1, "e = 0, greedy"),
+                        Agent$new(EpsilonGreedyPolicy$new(0.01),  bandit1, "e = 0.01"),
+                        Agent$new(EpsilonGreedyPolicy$new(0.1), bandit1, "e = 0.1"),
+                        Agent$new(EpsilonGreedyPolicy$new(0.5), bandit1, "e = 0.5"))
+
+simulator1 <- Simulator$new(agents = agents1, horizon = 1000, simulations = 2000)
+history1 <- simulator1$run()
+
+```
+
+```{r, echo = FALSE, fig.show="hold", out.width="50%"}
+plot(history1, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
+plot(history1, type = "optimal", lwd = 1, legend_position = "bottomright")
+```
+
+**Simulation 2: Reward Variance 10**
+
+Our next simulation increased the variance of possible rewards:
+
+$R_t \sim N(\mu_a, 1)$ where $\mu_a \sim N(0, 10)$.
+
+We expected that noisier rewards would require more exploration to figure out the optimal action and thus higher $\epsilon$ values would be better. Although the $\epsilon = 0.1$ still had the best performance, higher reward variance caused the $\epsilon = 0.5$ agent to perform better than the $\epsilon = 0.01$ agent, showing that sufficient exploration is important in this situation.
+
+```{r, include = FALSE}
+mus2            <- rnorm(10, 0, 1) # true expected reward per arm 
+sigmas2         <- rep(10, 10) 
+
+# actual rewards selected according to normal dist
+bandit2          <- BasicGaussianBandit$new(mu_per_arm = mus2, sigma_per_arm = sigmas2)
+
+agents2          <- list(Agent$new(EpsilonGreedyPolicy$new(0),    bandit2, "e = 0, greedy"),
+                        Agent$new(EpsilonGreedyPolicy$new(0.01),  bandit2, "e = 0.01"),
+                        Agent$new(EpsilonGreedyPolicy$new(0.1), bandit2, "e = 0.1"),
+                        Agent$new(EpsilonGreedyPolicy$new(0.5), bandit2, "e = 0.5"))
+
+simulator2       <- Simulator$new(agents = agents2, horizon = 1000, simulations = 2000)
+history2         <- simulator2$run()
+```
+
+```{r, echo = FALSE, fig.show="hold", out.width="50%"}
+plot(history2, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
+plot(history2, type = "optimal", lwd = 1, legend_position = "bottomright")
+```
+
+**Simulation 3: Reward Variance 0**
+
+Our next simulation decreased the variance of possible rewards to zero:
+
+$R_t \sim N(\mu_a, 1)$ where $\mu_a \sim N(0, 0)$.
+
+In this case, the true value of an action ($\mu_a$) is known by the agent after trying it just once. Exploration isn't needed once each action has been tried, so we expect the greedier algorithms to perform better. However, our results do not show this: the greedy algorithm still performed worst and the $\epsilon = 0.01$ algorithm did not do much better than in our first simulation. Again, we find that $\epsilon = 0.01$ appears to be a good balance between exploitation and exploration.
+
+```{r, include = FALSE}
+mus3            <- rnorm(10, 0, 1) # true expected reward per arm 
+sigmas3         <- rep(0, 10) 
+
+# actual rewards selected according to normal dist
+bandit3          <- BasicGaussianBandit$new(mu_per_arm = mus3, sigma_per_arm = sigmas3)
+
+agents3          <- list(Agent$new(EpsilonGreedyPolicy$new(0),    bandit3, "e = 0, greedy"),
+                        Agent$new(EpsilonGreedyPolicy$new(0.01),  bandit3, "e = 0.01"),
+                        Agent$new(EpsilonGreedyPolicy$new(0.1), bandit3, "e = 0.1"),
+                        Agent$new(EpsilonGreedyPolicy$new(0.5), bandit3, "e = 0.5"))
+
+simulator3       <- Simulator$new(agents = agents3, horizon = 1000, simulations = 2000)
+history3         <- simulator3$run()
+```
+
+```{r, echo = FALSE, fig.show="hold", out.width="50%"}
+plot(history3, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
+plot(history3, type = "optimal", lwd = 1, legend_position = "bottomright")
+```
+
+#### 
+
+#### Model Evaluation
+
+[Regret]{.underline}
+
+Regret can be defined as the expected decrease in reward gained due to exploring, rather than behaving optimally from the very beginning. In other words, it penalizes mistakes whenever they occur during the run. In our application, regret is calculated by the following equation:
+
+$$
+\text{regret} = | \text{reward} - \text{optimal reward} |
+$$In our application, we have information on which arm is the optimal arm and what reward would result from pulling that optimal arm, giving us the ability to calculate regret. However, in other reinforcement learning applications, the regret of algorithms is a hard metric to obtain.
+
+[Reward]{.underline}
+
+Rewards are variables associated with some states or state-action pairs. In the case of the K-armed bandits, there are 10 arms, each with their own associated reward, which is denoted by a positive or negative numeric value. The optimal arm is the arm with the highest reward.
 
 #### Benefits & Limitations
 

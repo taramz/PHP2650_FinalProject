@@ -18,10 +18,9 @@ Consider the following scenario: a mother is trying to encourage her child to do
 
 Reinforcement learning is a machine learning method that sits outside both supervised learning (which learns from a training set of labeled examples) and unsupervised learning (which identifies hidden structures from unlabeled data). Instead, reinforcement learning involves training an agent to learn how to make decisions to get the desired result through trial-and-error. The agent interacts with the environment, receives feedback in the form of rewards or penalties, and adjusts its actions to maximize the total reward over time.
 
-<center>
-![](machine_learning.png){width="527"}
-</center>
+Some of the main differences between supervised learning and reinforcement learning are that the agent is not provided with a set of input/output pairs, the agent is told the immediate reward following an action, but not which actions will result in the best reward in the long run, and the evaluation of the system occurs at the same time as the agent learns.
 
+<center>![](machine_learning.png){width="527"}</center>
 
 #### Reinforcement Learning: The Main Elements
 
@@ -35,17 +34,13 @@ There are **four** main elements in reinforcement learning:
 
 4.  Model of Environment: allows for inferences of how the environment will behave, used for planning
 
-<center>
-![](reinforcement_learning.png){width="527"}
-</center>
+<center>![](reinforcement_learning.png){width="527"}</center>
 
 #### Applications of Reinforcement Learning
 
 #### K-Armed Bandits
 
-<center>
-![](k_armed_bandits.png)
-</center>
+<center>![](k_armed_bandits.png)</center>
 
 A common reinforcement learning problem that has been studied for decades is the k-armed bandit problem. In this problem, our agent is in the room with $k$ gambling machines (denoted as "one-armed bandits"). The agent is allowed a fixed number of pulls, $n$. During each pull, any arm may be pulled. There is no cost to use these bandits; the only negative reward associated with a pull is wasting that turn. When arm $i$ is pulled, it returns a reward determined by an underlying distribution. These payoffs are independent and the parameters of each arm's distribution are unknown. The agent's goal is to maximize the rewards by concentrating on pulling the best arms.
 
@@ -73,7 +68,26 @@ Randomized policies, on the other hand, are the exact opposite of a greedy polic
 
 One example is to start off with a large value of $p$ to encourage initial exploration and slowly decrease the value over time. Another example is to perform as a purely exploratory algorithm for a certain number of iterations, before switching to a purely greedy algorithm. This strategy is known as the $\epsilon$-first policy.
 
-This policy takes in two parameters: $\epsilon$ and $N$. For the first $\epsilon \times N$ iterations, it will follow a purely random policy before switching to a purely greedy policy. In order to determine how different values of $\epsilon$ affect the performance, I have applied four different policies to the same bandit, each with the different values of $\epsilon$ explored above.
+This policy can be illustrated below, where for the first 50 iterations, we see the policy randomly pulling from all three arms, before switching to a greedy policy, where it only chooses to select the first arm (the one with the highest reward).
+
+```{r, include = FALSE}
+policy             <- EpsilonFirstPolicy$new(time_steps = 50)
+
+bandit             <- BasicBernoulliBandit$new(weights = c(0.6, 0.2, 0.2))
+
+agent              <- Agent$new(policy,bandit)
+
+simulator          <- Simulator$new(agents      = agent,
+                                    horizon     = 100,
+                                    simulations = 1000)
+hist <- simulator$run()
+```
+
+```{r, echo = FALSE, fig.show="hold"}
+plot(hist, type = "arms")
+```
+
+The $\epsilon$-first policy takes in two parameters: $\epsilon$ and $N$. For $\epsilon \times N$ iterations, it will follow a purely random policy and for $(1 - \epsilon) \times N$ iterations, it will follow a purely greedy policy. In order to determine how different values of $\epsilon$ affect the performance, I have applied four different policies to the same bandit, each with the different values of $\epsilon$ explored above.
 
 To compare the performance of the greedy, $\epsilon$-greedy algorithms, and $\epsilon$-first, we performed simulations of several 10-armed bandit problems.
 
@@ -101,6 +115,7 @@ agents1 <- list(Agent$new(EpsilonGreedyPolicy$new(0),    bandit1, "e = 0, greedy
                         Agent$new(EpsilonGreedyPolicy$new(0.5), bandit1, "e = 0.5"))
 
 simulator1 <- Simulator$new(agents = agents1, horizon = 1000, simulations = 2000)
+
 history1 <- simulator1$run()
 ```
 
@@ -123,12 +138,12 @@ agents1          <- list(Agent$new(EpsilonFirstPolicy$new(0, 1000),    bandit1, 
                          Agent$new(EpsilonFirstPolicy$new(0.5, 1000), bandit1, "e = 0.5"))
 
 simulator1       <- Simulator$new(agents = agents1, horizon = 1000, simulations = 2000)
-history1         <- simulator1$run()
+history2         <- simulator1$run()
 ```
 
 ```{r, echo = FALSE, fig.show="hold", out.width="50%"}
-plot(history1, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
-plot(history1, type = "optimal", lwd = 1, legend_position = "bottomright")
+plot(history2, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
+plot(history2, type = "optimal", lwd = 1, legend_position = "bottomright")
 ```
 
 **Simulation 2: Reward Variance 10**
@@ -154,12 +169,12 @@ agents2          <- list(Agent$new(EpsilonGreedyPolicy$new(0),    bandit2, "e = 
                         Agent$new(EpsilonGreedyPolicy$new(0.5), bandit2, "e = 0.5"))
 
 simulator2       <- Simulator$new(agents = agents2, horizon = 1000, simulations = 2000)
-history2         <- simulator2$run()
+history3         <- simulator2$run()
 ```
 
 ```{r, echo = FALSE, fig.show="hold", out.width="50%"}
-plot(history2, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
-plot(history2, type = "optimal", lwd = 1, legend_position = "bottomright")
+plot(history3, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
+plot(history3, type = "optimal", lwd = 1, legend_position = "bottomright")
 ```
 
 ```{r, include = FALSE}
@@ -176,12 +191,12 @@ agents2          <- list(Agent$new(EpsilonFirstPolicy$new(0, 1000),    bandit2, 
                          Agent$new(EpsilonFirstPolicy$new(0.5, 1000), bandit2, "e = 0.5"))
 
 simulator2       <- Simulator$new(agents = agents2, horizon = 1000, simulations = 2000)
-history2         <- simulator2$run()
+history4         <- simulator2$run()
 ```
 
 ```{r, echo = FALSE, fig.show="hold", out.width="50%"}
-plot(history2, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
-plot(history2, type = "optimal", lwd = 1, legend_position = "bottomright")
+plot(history4, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
+plot(history4, type = "optimal", lwd = 1, legend_position = "bottomright")
 ```
 
 **Simulation 3: Reward Variance 0**
@@ -207,12 +222,12 @@ agents3          <- list(Agent$new(EpsilonGreedyPolicy$new(0),    bandit3, "e = 
                         Agent$new(EpsilonGreedyPolicy$new(0.5), bandit3, "e = 0.5"))
 
 simulator3       <- Simulator$new(agents = agents3, horizon = 1000, simulations = 2000)
-history3         <- simulator3$run()
+history5         <- simulator3$run()
 ```
 
 ```{r, echo = FALSE, fig.show="hold", out.width="50%"}
-plot(history3, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
-plot(history3, type = "optimal", lwd = 1, legend_position = "bottomright")
+plot(history5, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
+plot(history5, type = "optimal", lwd = 1, legend_position = "bottomright")
 ```
 
 ```{r, include = FALSE}
@@ -229,12 +244,12 @@ agents3          <- list(Agent$new(EpsilonFirstPolicy$new(0, 1000),    bandit3, 
                          Agent$new(EpsilonFirstPolicy$new(0.5, 1000), bandit3, "e = 0.5"))
 
 simulator3       <- Simulator$new(agents = agents3, horizon = 1000, simulations = 2000)
-history3         <- simulator3$run()
+history6         <- simulator3$run()
 ```
 
 ```{r, echo = FALSE, fig.show="hold", out.width="50%"}
-plot(history3, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
-plot(history3, type = "optimal", lwd = 1, legend_position = "bottomright")
+plot(history6, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
+plot(history6, type = "optimal", lwd = 1, legend_position = "bottomright")
 ```
 
 #### Model Evaluation
@@ -245,12 +260,61 @@ Regret can be defined as the expected decrease in reward gained due to exploring
 
 $$
 \text{regret} = | \text{reward} - \text{optimal reward} |
-$$In our application, we have information on which arm is the optimal arm and what reward would result from pulling that optimal arm, giving us the ability to calculate regret. However, in other reinforcement learning applications, the regret of algorithms is a hard metric to obtain.
+$$
+
+In our application, we have information on which arm is the optimal arm as well as the resulting reward from pulling that optimal arm, making it easy to calculate the regret. However, in other reinforcement learning applications, the regret of algorithms can be a hard metric to obtain.
+
+Ideally, as the model learns we want our regret to decrease. We can see this demonstrated in the plot below, where the average regret starts out high, at 0.40, but sharply decreases as the agent starts to learn about the environment.
+
+```{r, include = FALSE}
+policy             <- EpsilonGreedyPolicy$new(epsilon = 0.01)
+
+bandit             <- BasicBernoulliBandit$new(weights = c(0.6, 0.1, 0.1, 0.1))
+
+agent              <- Agent$new(policy,bandit)
+
+simulator          <- Simulator$new(agents      = agent,
+                                    horizon     = 100,
+                                    simulations = 1000)
+hist <- simulator$run()
+```
+
+```{r, echo = FALSE, fig.show = "hold"}
+plot(hist, type = "average", regret = TRUE, disp = "ci", traces = FALSE, legend = FALSE)
+```
 
 [Reward]{.underline}
 
 Rewards are variables associated with some states or state-action pairs. In the case of the K-armed bandits, there are 10 arms, each with their own associated reward, which is denoted by a positive or negative numeric value. The optimal arm is the arm with the highest reward.
 
-#### Benefits & Limitations
+Ideally, we want to see that the reward increases over time, as the agent learns which actions will result in a high reward and which don't. We see this demonstrated below, where the average reward starts off at 0.20 at the first iteration before increases to get, on average, a reward of 0.46 at each iteration.
+
+```{r, echo = FALSE, fig.show = "hold"}
+plot(hist, type = "average", regret = FALSE, disp = "ci", traces = FALSE, legend = FALSE)
+```
+
+#### Benefits & Limitations of Reinforcement Learning
+
+[Benefits]{.underline}
+
+-   Performs better at concrete, well-defined tasks than supervised learning
+
+-   Closely models the way humans learn
+
+-   Can consider future rewards, not just immediate rewards
+
+[Limitations]{.underline}
+
+-   Very costly and dangerous for an agent to train in the real world
+
+    -   Ex. A self-driving car can't train in the real world - if it makes mistakes, it could be life-or-death!
+
+-   In the $\epsilon$-greedy strategy (the most commonly used exploration strategy), random actions are chosen initially as the agent learns its environment - in a real-world situation, randomly choosing an action can be disastrous
+
+-   Training from scratch every time can be time-consuming and resource intensive
+
+-   Can struggle if the reward function is not clear
+
+-   Millions of samples are needed in order to learn interesting policies
 
 #### Resources

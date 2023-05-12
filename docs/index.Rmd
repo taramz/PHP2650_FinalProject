@@ -5,6 +5,8 @@ date: "2023-05-02"
 output:
   html_document: default
   pdf_document: default
+bibliography: references.bib
+csl: biomed-central.csl
 ---
 
 ```{r setup, include=FALSE}
@@ -16,15 +18,17 @@ Consider the following scenario: a mother is trying to encourage her child to do
 
 #### What is Reinforcement Learning?
 
-Reinforcement learning is a machine learning method that sits outside both supervised learning (which learns from a training set of labeled examples) and unsupervised learning (which identifies hidden structures from unlabeled data). Instead, reinforcement learning involves training an agent to learn how to make decisions to get the desired result through trial-and-error. The agent interacts with the environment, receives feedback in the form of rewards or penalties, and adjusts its actions to maximize the total reward over time.
+Reinforcement learning is a machine learning method that sits outside both supervised learning (which learns from a training set of labeled examples) and unsupervised learning (which identifies hidden structures from unlabeled data). Instead, reinforcement learning involves training an agent to learn how to make decisions to get the desired result through trial-and-error. The agent interacts with the environment, receives feedback in the form of rewards or penalties, and adjusts its actions to maximize the total reward over time @Sutton_Bach_Barto_2018.
 
-Some of the main differences between supervised learning and reinforcement learning are that the agent is not provided with a set of input/output pairs, the agent is told the immediate reward following an action, but not which actions will result in the best reward in the long run, and the evaluation of the system occurs at the same time as the agent learns.
+Some of the main differences between supervised learning and reinforcement learning are that the agent is not provided with a set of input/output pairs, that the agent is told the immediate reward following an action (but not which actions will result in the best reward in the long run) and that the evaluation of the system occurs at the same time as the agent learns.
 
 <center>![](machine_learning.png){width="527"}</center>
 
+Reinforcement learning has been applied to a wide range of fields, including robotics, gaming, automated cars, natural language processing, finance, energy management, and healthcare. In robotics, reinforcement learning algorithms are used to train robots to learn complex tasks and adapt to changing environments. In energy management, reinforcement learning has been used to optimize energy use in smart homes and hybrid cars by teaching the agent to change energy use based on temperature and other data. In healthcare, reinforcement learning can used to develop personalized treatment plans or to help doctor's make diagnoses @Sivamayil_2023. 
+
 #### Reinforcement Learning: The Main Elements
 
-There are **four** main elements in reinforcement learning:
+There are **four** main elements in reinforcement learning @Sutton_Bach_Barto_2018:
 
 1.  Policy: an agent's way of behaving at any given time
 
@@ -36,13 +40,14 @@ There are **four** main elements in reinforcement learning:
 
 <center>![](reinforcement_learning.png){width="527"}</center>
 
-#### Applications of Reinforcement Learning
 
 #### K-Armed Bandits
 
+A common reinforcement learning problem that has been studied for decades is the k-armed bandit problem. In this problem, our agent is in the room with $k$ gambling machines (denoted as "one-armed bandits"). The agent is allowed a fixed number of pulls, $n$. During each pull, any arm may be pulled. There is no cost to use these bandits; the only negative reward associated with a pull is wasting that turn. When arm $i$ is pulled, it returns a reward determined by an underlying distribution. These payoffs are independent and the parameters of each arm's distribution are unknown. The agent's goal is to maximize the rewards by concentrating on pulling the best arms.
+
 <center>![](k_armed_bandits.png)</center>
 
-A common reinforcement learning problem that has been studied for decades is the k-armed bandit problem. In this problem, our agent is in the room with $k$ gambling machines (denoted as "one-armed bandits"). The agent is allowed a fixed number of pulls, $n$. During each pull, any arm may be pulled. There is no cost to use these bandits; the only negative reward associated with a pull is wasting that turn. When arm $i$ is pulled, it returns a reward determined by an underlying distribution. These payoffs are independent and the parameters of each arm's distribution are unknown. The agent's goal is to maximize the rewards by concentrating on pulling the best arms.
+The k-armed bandit problem is often used as a theoretical framework to compare reinforcement learning algorithms, but it also has some real-world applications. One study used a multi-armed bandit system to optimize health-worker resources. In this case, a non-profit delivered maternal and child healthcare information through voice and text messages to participants. However, they were limited by the number of workers they had and also experienced a lot of participant drop-out. A multi-armed bandit system was able to prioritize participants who would benefit most from these messages, making it the first application of a multi-armed bandit system in a real-world public health setting @Mate_2022. 
 
 In our example, each arm's expected reward will be determined by a Gaussian distribution. The expected reward is referred to as the *value* of the action $a$ and i denoted $q_*(a)$. The action selected on time step $t$ is denoted as $A_t$ and the corresponding reward as $R_t$:
 
@@ -52,17 +57,25 @@ $$
 
 In the Gaussian example, $R_t \sim N(\mu, \sigma)$ so $q_*(a) = \mu$.
 
-Since the agent does not know the true parameters underlying the reward distribution, it needs to update its guesses as it tries various actions. The estimated value of action *a* at time step *t* is denoted as $Q_t(a)$. One way to update these estimates is by averaging over the rewards already received for a given action *a*:
+Since the agent does not know the true parameters underlying the reward distribution, it needs to update its guesses as it tries various actions. One way to estimate the value of a given action $a$ is by averaging over the rewards already received for that action @Sutton_Bach_Barto_2018. Let $R_i$ denote the reward received after the $i$th selection of the given action $a$ and let $Q_n$ denote the estimate of its action value after it's been selected $n-1$ times: 
 
-$$Q_t(a) = \frac{\text{sum of rewards when } a \text{ taken prior to } t}{\text{number of times } a \text{ taken prior to } t} = \frac{\sum_{i=1}^{t-1}R_i \cdot \textbf{1}_{A_i=a}}{\sum_{i=1}^{t-1}\textbf{1}_{A_i=a}}$$
+$$Q_n = \frac{\text{sum of rewards when } a \text{ taken prior to } n}{\text{number of times } a \text{ taken prior to } n} =  \frac{R_1 + R_2 + ... + R_{n-1}}{n-1}$$
+
+The estimated values can then be updated for the given action in the following way, using a step size of $\frac{1}{n}$: 
+
+$$Q_{n+1}  = Q_n + \frac{1}{n}[R_n - Q_n]$$
+
+This is equivalent to the expression $Q_{n+1} = \frac{1}{n}\sum_{i=1}^nR_i$ but requires less memory because it only requires computation of the current reward, rather than having to keep track of all past rewards. The expression $[R_n-Q_n]$ is the error of the estimate $Q_n$, which we reduce by taking a step "towards" the reward $R_n$ @Sutton_Bach_Barto_2018. 
 
 #### Exploitation vs. Exploration
 
-At time step *t*, the agent has estimated values $Q_{t-1}(a)$ for each possible action *a*. How does it decide which action to take next? The most obvious decision may be to select the action with the highest estimated value. This strategy is referred to as *greedy* action selection, which *exploits* the knowledge that the agent already has. But what if the agent estimates a high value for a suboptimal action early on? The agent will just keep selecting this action again and again, without ever *exploring* the other, more optimal actions.
+At time step *t*, the agent has estimated values $Q_{t-1}(a)$ for each possible action *a*. How does it decide which action to take next? The most obvious decision may be to select the action with the highest estimated value. This strategy is referred to as *greedy* action selection, which *exploits* the knowledge that the agent already has. But what if the agent estimates a high value for a suboptimal action early on? The agent will just keep selecting this action again and again, without ever *exploring* the other, more optimal actions @Sutton_Bach_Barto_2018.
 
-The problem above illustrates one of the most fundamental trade-offs in reinforcement learning. Reinforcement models need to balance exploitation (using actions that it already knows will result in a reward) and exploration (trying new actions that could potentially result in a reward). A model with maximized exploitation will quickly find a solution, but will likely be suboptimal since it continues with the first actions that resulted in a reward. On the other hand, a model with maximized exploration will continuously discover new possible actions but never find a solution since it discounts which actions produce the reward.
+The problem above illustrates one of the most fundamental trade-offs in reinforcement learning. Reinforcement models need to balance exploitation (using actions that it already knows will result in a reward) and exploration (trying new actions that could potentially result in a reward). A model with maximized exploitation will quickly find a solution, but will likely be suboptimal since it continues with the first actions that resulted in a reward. On the other hand, a model with maximized exploration will continuously discover new possible actions but never find a solution since it discounts which actions produce the reward @Sutton_Bach_Barto_2018.
 
-One way to add exploration is by using the $\epsilon$-greedy algorithm. Agents developed using this algorithm will behave greedily with probability $1-\epsilon$, but will sample from all actions randomly with probability $\epsilon$. In other words, it will usually *exploit* its current knowledge, but will *explore* other actions every once in a while.
+One way to add exploration is by using the $\epsilon$-greedy algorithm. Agents developed using this algorithm will behave greedily with probability $1-\epsilon$, but will sample from all actions randomly with probability $\epsilon$. In other words, it will usually *exploit* its current knowledge, but will *explore* other actions every once in a while. Pseudo code for this algorithm is presented below @Sutton_Bach_Barto_2018.
+
+<center>![](pseudocode.png){width="527"}</center>
 
 Randomized policies, on the other hand, are the exact opposite of a greedy policy. These policies select an action at random, with probability $p$. As such, they always choose to explore the environment, rather than exploiting what they know to be the optimal action. There are some tweaks that can be made to these randomized policies to make them perform better.
 
@@ -97,7 +110,7 @@ Our first simulation used the following parameters to set the reward distributio
 
 $R_t \sim N(\mu_a, 1)$ where $\mu_a \sim N(0, 1)$.
 
-We ran 2,000 simulations over 1,000 time steps, comparing four $\epsilon$ values: 0, 0.01, 0.1, and 0.5. At time step 1,000, over the 2,000 simulations, the greedy algorithm ($\epsilon = 0$) only picked the optimal action 38% of the time. This makes sense, as this agent was not able to explore actions beyond what it had estimated as the best. The agent with $\epsilon = 0.01$ gradually increased the rate at which it chose the optimal action, outperforming the greedy agent. The agent with $\epsilon = 0.1$ performed even better, choosing the optimal action more often and accruing a high reward over time. However, the agent with $\epsilon = 0.5$ produced the lowest average rewards. This agent only chose the action with the highest estimated reward 50% of the time and chose randomly otherwise. This led it to not be able to "learn" as well as the other agents.
+We ran 2,000 simulations over 1,000 time steps, comparing four $\epsilon$ values: 0, 0.01, 0.1, and 0.5. At time step 1,000, over the 2,000 simulations, the greedy algorithm ($\epsilon = 0$) only picked the optimal action 38% of the time. This makes sense, as this agent was not able to explore actions beyond what it had originally estimated as the best. The agent with $\epsilon = 0.01$ gradually increased the rate at which it chose the optimal action, outperforming the greedy agent. The agent with $\epsilon = 0.1$ performed even better, choosing the optimal action more often and accruing a high reward over time. However, the agent with $\epsilon = 0.5$ produced the lowest average rewards. This agent only chose the action with the highest estimated reward 50% of the time and chose randomly otherwise. This led it to not be able to "learn" as well as the other agents.
 
 For the $\epsilon$-first algorithm, we notice the opposite. Unsurprisingly, the agent that performs best has $\epsilon = 0.5$. As this agent spends 50% of the time exploring the environment prior to exploiting it, it is expected that it would outperform the other agents, which spend significantly less time exploring the environment. Though the agent with $\epsilon = 0.01$ spends more time exploiting the environment, it is not able to accrue a higher reward, since it hasn't spent enough time exploring the environment to determine which action results in the highest reward.
 
@@ -118,6 +131,8 @@ simulator1 <- Simulator$new(agents = agents1, horizon = 1000, simulations = 2000
 
 history1 <- simulator1$run()
 ```
+
+[$\epsilon$-Greedy Algorithm \n]{.underline}
 
 ```{r, echo = FALSE, fig.show="hold", out.width="50%"}
 plot(history1, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
@@ -140,6 +155,8 @@ agents1          <- list(Agent$new(EpsilonFirstPolicy$new(0, 1000),    bandit1, 
 simulator1       <- Simulator$new(agents = agents1, horizon = 1000, simulations = 2000)
 history2         <- simulator1$run()
 ```
+
+[$\epsilon$-First Algorithm \n]{.underline}
 
 ```{r, echo = FALSE, fig.show="hold", out.width="50%"}
 plot(history2, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
@@ -172,6 +189,8 @@ simulator2       <- Simulator$new(agents = agents2, horizon = 1000, simulations 
 history3         <- simulator2$run()
 ```
 
+[$\epsilon$-Greedy Algorithm \n]{.underline}
+
 ```{r, echo = FALSE, fig.show="hold", out.width="50%"}
 plot(history3, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
 plot(history3, type = "optimal", lwd = 1, legend_position = "bottomright")
@@ -194,6 +213,8 @@ simulator2       <- Simulator$new(agents = agents2, horizon = 1000, simulations 
 history4         <- simulator2$run()
 ```
 
+[$\epsilon$-First Algorithm \n]{.underline}
+
 ```{r, echo = FALSE, fig.show="hold", out.width="50%"}
 plot(history4, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
 plot(history4, type = "optimal", lwd = 1, legend_position = "bottomright")
@@ -205,7 +226,7 @@ Our next simulation decreased the variance of possible rewards to zero:
 
 $R_t \sim N(\mu_a, 1)$ where $\mu_a \sim N(0, 0)$.
 
-In this case, the true value of an action ($\mu_a$) is known by the agent after trying it just once. Exploration isn't needed once each action has been tried, so we expect the greedier algorithms to perform better. However, our results do not show this: the greedy algorithm still performed worst and the $\epsilon = 0.01$ algorithm did not do much better than in our first simulation. Again, we find that $\epsilon = 0.01$ appears to be a good balance between exploitation and exploration.
+In this case, the true value of an action $a$ is known by the agent after trying it just once ($\mu_a$). Exploration isn't needed once each action has been tried, so we expect the greedier algorithms to perform better. However, our results do not show this: the greedy algorithm still performed worst and the $\epsilon = 0.01$ algorithm did not do much better than in our first simulation. Again, we find that $\epsilon = 0.1$ appears to be a good balance between exploitation and exploration.
 
 Though in our previous simulations the agent with $\epsilon = 0.5$ performs best when the $\epsilon$-first policy is implemented, here we see that the agent with $\epsilon = 0.1$ performs just as well. Since the true value is known after trying an action once, we don't need as much exploration as the agent with $\epsilon = 0.5$ performs. For this policy, the agent with the best balance between exploration and exploitation is $\epsilon = 0.1$.
 
@@ -224,6 +245,8 @@ agents3          <- list(Agent$new(EpsilonGreedyPolicy$new(0),    bandit3, "e = 
 simulator3       <- Simulator$new(agents = agents3, horizon = 1000, simulations = 2000)
 history5         <- simulator3$run()
 ```
+
+[$\epsilon$-Greedy Algorithm \n]{.underline}
 
 ```{r, echo = FALSE, fig.show="hold", out.width="50%"}
 plot(history5, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
@@ -246,6 +269,8 @@ agents3          <- list(Agent$new(EpsilonFirstPolicy$new(0, 1000),    bandit3, 
 simulator3       <- Simulator$new(agents = agents3, horizon = 1000, simulations = 2000)
 history6         <- simulator3$run()
 ```
+
+[$\epsilon$-First Algorithm \n]{.underline}
 
 ```{r, echo = FALSE, fig.show="hold", out.width="50%"}
 plot(history6, type = "average", regret = FALSE, lwd = 1, legend_position = "bottomright")
@@ -317,4 +342,8 @@ plot(hist, type = "average", regret = FALSE, disp = "ci", traces = FALSE, legend
 
 -   Millions of samples are needed in order to learn interesting policies
 
-#### Resources
+#### Conclusion
+
+To summarize, the exploration-exploitation trade-off is a key concept in reinforcement learning, and can be investigated using the k-armed bandit problem. By conducting simulations that tested different $\epsilon$-greedy and $\epsilon$-first algorithms, we discovered which reward variances required more exploration and which reward variances performed better with more exploitation. Finding the right balance between exploration and exploitation is critical in building better reinforcement learning models. 
+
+#### References

@@ -8,3 +8,4 @@ docs/greedy_sim2.rds
 docs/greedy_sim3.rds
 *.zip
 *.rds
+.Rproj.user

@@ -24,7 +24,7 @@ Some of the main differences between supervised learning and reinforcement learn
 
 <center>![](machine_learning.png){width="527"}</center>
 
-Reinforcement learning has been applied to a wide range of fields, including robotics, gaming, automated cars, natural language processing, finance, energy management, and healthcare. In robotics, reinforcement learning algorithms are used to train robots to learn complex tasks and adapt to changing environments. In energy management, reinforcement learning has been used to optimize energy use in smart homes and hybrid cars by teaching the agent to change energy use based on temperature and other data. In healthcare, reinforcement learning can used to develop personalized treatment plans or to help doctor's make diagnoses @Sivamayil_2023. 
+Reinforcement learning has been applied to a wide range of fields, including robotics, gaming, automated cars, natural language processing, finance, energy management, and healthcare. In robotics, reinforcement learning algorithms are used to train robots to learn complex tasks and adapt to changing environments. In energy management, reinforcement learning has been used to optimize energy use in smart homes and hybrid cars by teaching the agent to change energy use based on temperature and other data. In healthcare, reinforcement learning can used to develop personalized treatment plans or to help doctor's make diagnoses @Sivamayil_2023.
 
 #### Reinforcement Learning: The Main Elements
 
@@ -40,14 +40,13 @@ There are **four** main elements in reinforcement learning @Sutton_Bach_Barto_20
 
 <center>![](reinforcement_learning.png){width="527"}</center>
 
-
 #### K-Armed Bandits
 
 A common reinforcement learning problem that has been studied for decades is the k-armed bandit problem. In this problem, our agent is in the room with $k$ gambling machines (denoted as "one-armed bandits"). The agent is allowed a fixed number of pulls, $n$. During each pull, any arm may be pulled. There is no cost to use these bandits; the only negative reward associated with a pull is wasting that turn. When arm $i$ is pulled, it returns a reward determined by an underlying distribution. These payoffs are independent and the parameters of each arm's distribution are unknown. The agent's goal is to maximize the rewards by concentrating on pulling the best arms.
 
 <center>![](k_armed_bandits.png)</center>
 
-The k-armed bandit problem is often used as a theoretical framework to compare reinforcement learning algorithms, but it also has some real-world applications. One study used a multi-armed bandit system to optimize health-worker resources. In this case, a non-profit delivered maternal and child healthcare information through voice and text messages to participants. However, they were limited by the number of workers they had and also experienced a lot of participant drop-out. A multi-armed bandit system was able to prioritize participants who would benefit most from these messages, making it the first application of a multi-armed bandit system in a real-world public health setting @Mate_2022. 
+The k-armed bandit problem is often used as a theoretical framework to compare reinforcement learning algorithms, but it also has some real-world applications. One study used a multi-armed bandit system to optimize health-worker resources. In this case, a non-profit delivered maternal and child healthcare information through voice and text messages to participants. However, they were limited by the number of workers they had and also experienced a lot of participant drop-out. A multi-armed bandit system was able to prioritize participants who would benefit most from these messages, making it the first application of a multi-armed bandit system in a real-world public health setting @Mate_2022.
 
 In our example, each arm's expected reward will be determined by a Gaussian distribution. The expected reward is referred to as the *value* of the action $a$ and i denoted $q_*(a)$. The action selected on time step $t$ is denoted as $A_t$ and the corresponding reward as $R_t$:
 
@@ -57,15 +56,15 @@ $$
 
 In the Gaussian example, $R_t \sim N(\mu, \sigma)$ so $q_*(a) = \mu$.
 
-Since the agent does not know the true parameters underlying the reward distribution, it needs to update its guesses as it tries various actions. One way to estimate the value of a given action $a$ is by averaging over the rewards already received for that action @Sutton_Bach_Barto_2018. Let $R_i$ denote the reward received after the $i$th selection of the given action $a$ and let $Q_n$ denote the estimate of its action value after it's been selected $n-1$ times: 
+Since the agent does not know the true parameters underlying the reward distribution, it needs to update its guesses as it tries various actions. One way to estimate the value of a given action $a$ is by averaging over the rewards already received for that action @Sutton_Bach_Barto_2018. Let $R_i$ denote the reward received after the $i$th selection of the given action $a$ and let $Q_n$ denote the estimate of its action value after it's been selected $n-1$ times:
 
 $$Q_n = \frac{\text{sum of rewards when } a \text{ taken prior to } n}{\text{number of times } a \text{ taken prior to } n} =  \frac{R_1 + R_2 + ... + R_{n-1}}{n-1}$$
 
-The estimated values can then be updated for the given action in the following way, using a step size of $\frac{1}{n}$: 
+The estimated values can then be updated for the given action in the following way, using a step size of $\frac{1}{n}$:
 
 $$Q_{n+1}  = Q_n + \frac{1}{n}[R_n - Q_n]$$
 
-This is equivalent to the expression $Q_{n+1} = \frac{1}{n}\sum_{i=1}^nR_i$ but requires less memory because it only requires computation of the current reward, rather than having to keep track of all past rewards. The expression $[R_n-Q_n]$ is the error of the estimate $Q_n$, which we reduce by taking a step "towards" the reward $R_n$ @Sutton_Bach_Barto_2018. 
+This is equivalent to the expression $Q_{n+1} = \frac{1}{n}\sum_{i=1}^nR_i$ but requires less memory because it only requires computation of the current reward, rather than having to keep track of all past rewards. The expression $[R_n-Q_n]$ is the error of the estimate $Q_n$, which we reduce by taking a step "towards" the reward $R_n$ @Sutton_Bach_Barto_2018.
 
 #### Exploitation vs. Exploration
 
@@ -102,7 +101,7 @@ plot(hist, type = "arms")
 
 The $\epsilon$-first policy takes in two parameters: $\epsilon$ and $N$. For $\epsilon \times N$ iterations, it will follow a purely random policy and for $(1 - \epsilon) \times N$ iterations, it will follow a purely greedy policy. In order to determine how different values of $\epsilon$ affect the performance, I have applied four different policies to the same bandit, each with the different values of $\epsilon$ explored above.
 
-To compare the performance of the greedy, $\epsilon$-greedy algorithms, and $\epsilon$-first, we performed simulations of several 10-armed bandit problems.
+To compare the performance of the greedy, $\epsilon$-greedy algorithms, and $\epsilon$-first, we performed simulations of several 10-armed bandit problems. [@contextual]
 
 **Simulation 1: Reward Variance 1**
 
@@ -287,7 +286,7 @@ $$
 \text{regret} = | \text{reward} - \text{optimal reward} |
 $$
 
-In our application, we have information on which arm is the optimal arm as well as the resulting reward from pulling that optimal arm, making it easy to calculate the regret. However, in other reinforcement learning applications, the regret of algorithms can be a hard metric to obtain.
+In our application, we have information on which arm is the optimal arm as well as the resulting reward from pulling that optimal arm, making it easy to calculate the regret. However, in other reinforcement learning applications, the regret of algorithms can be a hard metric to obtain. [@Kaelbling_Littman_Moore_2009]
 
 Ideally, as the model learns we want our regret to decrease. We can see this demonstrated in the plot below, where the average regret starts out high, at 0.40, but sharply decreases as the agent starts to learn about the environment.
 
@@ -312,7 +311,7 @@ plot(hist, type = "average", regret = TRUE, disp = "ci", traces = FALSE, legend 
 
 Rewards are variables associated with some states or state-action pairs. In the case of the K-armed bandits, there are 10 arms, each with their own associated reward, which is denoted by a positive or negative numeric value. The optimal arm is the arm with the highest reward.
 
-Ideally, we want to see that the reward increases over time, as the agent learns which actions will result in a high reward and which don't. We see this demonstrated below, where the average reward starts off at 0.20 at the first iteration before increases to get, on average, a reward of 0.46 at each iteration.
+Ideally, we want to see that the reward increases over time, as the agent learns which actions will result in a high reward and which don't. We see this demonstrated below, where the average reward starts off at 0.20 at the first iteration before increases to get, on average, a reward of 0.46 at each iteration. [@Sutton_Bach_Barto_2018]
 
 ```{r, echo = FALSE, fig.show = "hold"}
 plot(hist, type = "average", regret = FALSE, disp = "ci", traces = FALSE, legend = FALSE)
@@ -322,11 +321,11 @@ plot(hist, type = "average", regret = FALSE, disp = "ci", traces = FALSE, legend
 
 [Benefits]{.underline}
 
--   Performs better at concrete, well-defined tasks than supervised learning
+-   Performs better at concrete, well-defined tasks than supervised learning @Morales_2020
 
 -   Closely models the way humans learn
 
--   Can consider future rewards, not just immediate rewards
+-   Can consider future rewards, not just immediate rewards @Kaelbling_Littman_Moore_2009
 
 [Limitations]{.underline}
 
@@ -340,10 +339,10 @@ plot(hist, type = "average", regret = FALSE, disp = "ci", traces = FALSE, legend
 
 -   Can struggle if the reward function is not clear
 
--   Millions of samples are needed in order to learn interesting policies
+-   Millions of samples are needed in order to learn interesting policies [@Morales_2020]
 
 #### Conclusion
 
-To summarize, the exploration-exploitation trade-off is a key concept in reinforcement learning, and can be investigated using the k-armed bandit problem. By conducting simulations that tested different $\epsilon$-greedy and $\epsilon$-first algorithms, we discovered which reward variances required more exploration and which reward variances performed better with more exploitation. Finding the right balance between exploration and exploitation is critical in building better reinforcement learning models. 
+To summarize, the exploration-exploitation trade-off is a key concept in reinforcement learning, and can be investigated using the k-armed bandit problem. By conducting simulations that tested different $\epsilon$-greedy and $\epsilon$-first algorithms, we discovered which reward variances required more exploration and which reward variances performed better with more exploitation. Finding the right balance between exploration and exploitation is critical in building better reinforcement learning models.
 
 #### References
